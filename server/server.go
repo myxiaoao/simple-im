@@ -54,15 +54,9 @@ func (s *Server) ListenMessage() {
 
 // Handler 处理业务链接
 func (s *Server) Handler(conn net.Conn) {
-	user := NewUser(conn)
+	user := NewUser(conn, s)
 
-	// 用户上线，将用户加入到 online map 中
-	s.mapLock.Lock()
-	s.OnlineMap[user.Name] = user
-	s.mapLock.Unlock()
-
-	// 广播当前用户上线消息
-	s.BroadCast(user, "已上线")
+	user.Online()
 
 	// 接收客户端发送的消息
 	go func() {
@@ -70,7 +64,7 @@ func (s *Server) Handler(conn net.Conn) {
 		for {
 			n, err := conn.Read(bytes)
 			if n == 0 {
-				s.BroadCast(user, "下线")
+				user.Offline()
 				return
 			}
 
@@ -81,8 +75,9 @@ func (s *Server) Handler(conn net.Conn) {
 
 			// 提前用户消息，并去除 "\n"
 			msg := string(bytes[:n-1])
-			// 将消息进行广播
-			s.BroadCast(user, msg)
+
+			// 用户针对 msg 进行消息处理
+			user.DoMessage(msg)
 		}
 	}()
 
