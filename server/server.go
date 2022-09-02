@@ -98,7 +98,7 @@ func (s *Server) Handler(conn net.Conn) {
 			// 已经超时
 			// 将当前 user 强制关闭
 			user.SendMsg("你被踢了.\n")
-			user.Online()
+			// user.Online()
 			close(isLive)
 			// 销毁用户资源
 			close(user.C)
