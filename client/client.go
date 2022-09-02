@@ -44,7 +44,7 @@ func (c *Client) Run() {
 		// 根据不同的模式处理不同的业务
 		switch c.flag {
 		case 1:
-			fmt.Println("公聊模式选择.")
+			c.PublicChat()
 		case 2:
 			fmt.Println("私聊模式选择.")
 		case 3:
@@ -60,6 +60,38 @@ func (c *Client) DealResponse() {
 	if err != nil {
 		return
 	}
+}
+
+func (c *Client) PublicChat() {
+	// 提示用户输入信息
+	var chatMsg string
+
+	fmt.Println("> 请输入聊天内容，exit 退出")
+	_, err := fmt.Scanln(&chatMsg)
+	if err != nil {
+		return
+	}
+
+	for chatMsg != "exit" {
+		// 发送服务器
+		// 消息不为空则发送
+		if len(chatMsg) != 0 {
+			sendMsg := chatMsg + "\n"
+			_, err := c.conn.Write([]byte(sendMsg))
+			if err != nil {
+				fmt.Println("conn.Write err:", err)
+				break
+			}
+		}
+
+		chatMsg = ""
+		fmt.Println("> 请输入聊天内容，exit 退出")
+		_, err := fmt.Scanln(&chatMsg)
+		if err != nil {
+			return
+		}
+	}
+
 }
 
 // UpdateName 更新用户名
