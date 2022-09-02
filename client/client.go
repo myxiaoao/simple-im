@@ -3,7 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"net"
+	"os"
 )
 
 type Client struct {
@@ -46,9 +48,36 @@ func (c *Client) Run() {
 		case 2:
 			fmt.Println("私聊模式选择.")
 		case 3:
-			fmt.Println("更新用户名选择.")
+			c.UpdateName()
 		}
 	}
+}
+
+// DealResponse 处理 server 回应的消息，直接显示标准输出
+func (c *Client) DealResponse() {
+	// 一但 c.conn 有数据，就直接 copy 到 stdout 标准输出上，永久阻塞监听
+	_, err := io.Copy(os.Stdout, c.conn)
+	if err != nil {
+		return
+	}
+}
+
+// UpdateName 更新用户名
+func (c *Client) UpdateName() bool {
+	fmt.Println("> 请输入用户名:")
+	_, err := fmt.Scanln(&c.Name)
+	if err != nil {
+		return false
+	}
+
+	sendMsg := "rename|" + c.Name + "\n"
+	_, err = c.conn.Write([]byte(sendMsg))
+	if err != nil {
+		fmt.Println("conn.Write err:", err)
+		return false
+	}
+
+	return true
 }
 
 func (c *Client) menu() bool {
@@ -91,6 +120,9 @@ func main() {
 		fmt.Println("客户端链接失败!")
 		return
 	}
+
+	// 单独开启一个 goroutine 去处理 server 回执消息
+	go client.DealResponse()
 
 	fmt.Println("客户端链接成功!")
 
