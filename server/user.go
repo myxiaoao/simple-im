@@ -38,9 +38,13 @@ func (u *User) ListenMessage() {
 	for {
 		msg := <-u.C
 
+		if msg == "" {
+			continue
+		}
+
 		_, err := u.conn.Write([]byte(msg + "\n"))
 		if err != nil {
-			fmt.Println("write message err:", err)
+			fmt.Println("listen write message err:", err)
 		}
 	}
 }
@@ -71,7 +75,7 @@ func (u *User) Offline() {
 func (u *User) SendMsg(msg string) {
 	_, err := u.conn.Write([]byte(msg))
 	if err != nil {
-		fmt.Println("write message err:", err)
+		fmt.Println("send write message err:", err)
 	}
 }
 
@@ -104,5 +108,4 @@ func (u *User) DoMessage(msg string) {
 	} else {
 		u.server.BroadCast(u, msg)
 	}
-
 }
